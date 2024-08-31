@@ -1,0 +1,32 @@
+{
+    "name": "deadmansswitch/openapi-symfony-bundle",
+    "version": "0.1.0",
+    "description": "OpenAPI auto-generating bundle for Symfony",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Luke Kortunov",
+            "email": "luke@kortunov.me"
+        }
+    ],
+    "require": {
+        "php": "~8.1.0||~8.2.0||~8.3.0",
+        "symfony/dependency-injection": "^6.0|^7.0",
+        "symfony/framework-bundle": "^6.0|^7.0",
+        "symfony/http-kernel": "^6.0|^7.0"
+    },
+    "require-dev": {
+        "spatie/ray": "^1.41"
+    },
+    "autoload": {
+        "psr-4": {
+            "DeadMansSwitch\\OpenApi\\Symfony\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DeadMansSwitch\\OpenApi\\Symfony\\Tests\\": "tests/"
+        }
+    }
+}
