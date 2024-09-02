@@ -9,7 +9,7 @@ interface TypedCollectionInterface
     /**
      * Static constructor for collection of DTOs
      */
-    static function fromArray(array $items): static;
+    public static function fromArray(array $items): self;
 
     /**
      * Returns FQCN to type of item DTO in collection.
@@ -17,5 +17,5 @@ interface TypedCollectionInterface
      * Used for generating OpenAPI schema and validation of
      * collection items type
      */
-    static function type(): string;
+    public static function type(): string;
 }
