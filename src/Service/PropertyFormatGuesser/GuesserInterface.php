@@ -8,9 +8,7 @@ use ReflectionProperty;
 
 interface GuesserInterface
 {
-    public function setNextGuesser(?GuesserInterface $guesser): void;
-    public function getNextGuesser(): ?GuesserInterface;
-    public function guess(ReflectionProperty $property): Format;
+    public function guess(ReflectionProperty $property): ?string;
 }
 
 // EmailGuesser.php

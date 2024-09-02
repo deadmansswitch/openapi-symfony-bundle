@@ -4,54 +4,49 @@ declare(strict_types=1);
 
 namespace DeadMansSwitch\OpenApi\Symfony\DependencyInjection;
 
-use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Guesser\EmailGuesser;
-use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Guesser\HostnameGuesser;
-use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Guesser\IPv4Guesser;
-use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\GuesserInterface;
+use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Attribute\AsPropertyFormatGuesser;
+use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Guesser\EmailFormatGuesser;
+use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\GuesserStrategy;
+use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\GuesserStrategyInterface;
+use ReflectionClass;
+use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 
 final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
 {
-    private const TAG_PROPERTY_FORMAT_GUESSER = 'dead_mans_switch.openapi.symfony.property_format_guesser';
+    private const PREFIX = 'dead_mans_switch.openapi.symfony.property_format_guesser';
 
     public function load(array $configs, ContainerBuilder $container): void
     {
-        $this->registerPropertyTypeGuesserChain($container);
+        $this->registerPropertyTypeGuesserStrategy($container);
     }
 
-    private function registerPropertyTypeGuesserChain(ContainerBuilder $container): void
+    private function registerPropertyTypeGuesserStrategy(ContainerBuilder $container): void
     {
-        $container->register(EmailGuesser::class, EmailGuesser::class)->addTag(self::TAG_PROPERTY_FORMAT_GUESSER);
-        $container->register(HostnameGuesser::class, HostnameGuesser::class)->addTag(self::TAG_PROPERTY_FORMAT_GUESSER);
-        $container->register(IPv4Guesser::class, IPv4Guesser::class)->addTag(self::TAG_PROPERTY_FORMAT_GUESSER);
-        $container->registerForAutoconfiguration(GuesserInterface::class)->addTag(self::TAG_PROPERTY_FORMAT_GUESSER);
+        $container
+            ->registerAttributeForAutoconfiguration(
+                attributeClass: AsPropertyFormatGuesser::class,
+                configurator: static function(ChildDefinition $def, AsPropertyFormatGuesser $attr, ReflectionClass $ref): void
+                {
+                    $def->addTag(self::PREFIX . '.guesser');
+                }
+            );
 
-        $guessers = $container->findTaggedServiceIds(self::TAG_PROPERTY_FORMAT_GUESSER);
-        $ordered  = [];
+        $container
+            ->register(self::PREFIX . '.guessers.email', EmailFormatGuesser::class)
+            ->addTag(self::PREFIX . '.guesser')
+        ;
 
-        foreach ($guessers as $id => $attributes) {
-            $priority = (int) ($attributes[0]['priority'] ?? 0);
-            $ordered[$priority][] = $id;
-        }
+        $container
+            ->register(id: self::PREFIX . '.strategy', class: GuesserStrategy::class)
+            ->setArgument('$guessers', new TaggedIteratorArgument(tag: self::PREFIX . '.guesser'))
+        ;
 
-        $sorted = $this->sortServiceDefinitions($ordered);
-        $first  = array_shift($sorted);
-
-        $container->setAlias(GuesserInterface::class, $first)->setPublic(true);
-
-        $guesserDefinition = $container->getDefinition($first);
-        foreach ($sorted as $serviceId) {
-            $nextGuesserDefinition = $container->getDefinition($serviceId);
-            $guesserDefinition->addMethodCall('setNextGuesser', [$nextGuesserDefinition]);
-            $guesserDefinition = $nextGuesserDefinition;
-        }
-    }
-
-    private function sortServiceDefinitions(array $orderedDefinitions): array
-    {
-        ksort($orderedDefinitions);
-
-        return array_merge(...$orderedDefinitions);
+        $container
+            ->setAlias(alias: GuesserStrategyInterface::class, id: self::PREFIX . '.strategy')
+            ->setPublic(true)
+        ;
     }
 }
