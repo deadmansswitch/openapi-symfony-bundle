@@ -17,7 +17,8 @@
         "symfony/http-kernel": "^6.0|^7.0"
     },
     "require-dev": {
-        "spatie/ray": "^1.41"
+        "spatie/ray": "^1.41",
+        "pestphp/pest": "^2.35"
     },
     "autoload": {
         "psr-4": {
@@ -27,6 +28,11 @@
     "autoload-dev": {
         "psr-4": {
             "DeadMansSwitch\\OpenApi\\Symfony\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
         }
     }
 }
