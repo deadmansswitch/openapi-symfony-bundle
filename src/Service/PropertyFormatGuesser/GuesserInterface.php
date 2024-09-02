@@ -8,7 +8,8 @@ use ReflectionProperty;
 
 interface GuesserInterface
 {
-    public function next(): ?GuesserInterface;
+    public function setNextGuesser(?GuesserInterface $guesser): void;
+    public function getNextGuesser(): ?GuesserInterface;
     public function guess(ReflectionProperty $property): Format;
 }
 

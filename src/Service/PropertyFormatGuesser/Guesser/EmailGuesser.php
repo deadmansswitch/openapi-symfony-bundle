@@ -5,30 +5,38 @@ declare(strict_types=1);
 namespace DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Guesser;
 
 use ReflectionProperty;
-use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser as Guesser;
+use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Format;
+use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\GuesserInterface;
+use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Exception\FormatNotGuessedException;
 
-final class EmailGuesser implements Guesser\GuesserInterface
+final class EmailGuesser implements GuesserInterface
 {
-    public function __construct(private readonly ?Guesser\GuesserInterface $next) {}
+    private ?GuesserInterface $next = null;
 
-    public function next(): ?Guesser\GuesserInterface
+    public function setNextGuesser(?GuesserInterface $guesser): void
+    {
+        $this->next = $guesser;
+    }
+
+    public function getNextGuesser(): ?GuesserInterface
     {
         return $this->next;
     }
 
     /**
-     * @throws Guesser\Exception\FormatNotGuessedException
+     * @throws FormatNotGuessedException
      */
-    public function guess(ReflectionProperty $property): Guesser\Format
+    public function guess(ReflectionProperty $property): Format
     {
         if ($property->getName() === 'email') {
-            return Guesser\Format::Email;
+            return Format::Email;
         }
 
-        if (!$this->next() instanceof Guesser\GuesserInterface) {
-            throw new Guesser\Exception\FormatNotGuessedException();
+        $format = $this->getNextGuesser()?->guess($property);
+        if ($format instanceof Format) {
+            return $format;
         }
 
-        return $this->next->guess($property);
+        throw new FormatNotGuessedException;
     }
 }

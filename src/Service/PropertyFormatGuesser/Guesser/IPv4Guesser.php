@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Guesser;
 
+use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser as Guesser;
 use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Exception\FormatNotGuessedException;
 use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Format;
 use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\GuesserInterface;
 use ReflectionProperty;
 
-final class HostnameGuesser implements GuesserInterface
+final class IPv4Guesser implements Guesser\GuesserInterface
 {
     private ?GuesserInterface $nextGuesser = null;
 
@@ -28,8 +29,8 @@ final class HostnameGuesser implements GuesserInterface
      */
     public function guess(ReflectionProperty $property): Format
     {
-        if ($property->getName() === 'hostname') {
-            return Format::Hostname;
+        if ($property->getName() === 'ipv4') {
+            return Format::IPv4;
         }
 
         $format = $this->getNextGuesser()?->guess($property);
@@ -38,6 +39,6 @@ final class HostnameGuesser implements GuesserInterface
             return $format;
         }
 
-        throw new FormatNotGuessedException();
+        throw new Guesser\Exception\FormatNotGuessedException();
     }
 }
