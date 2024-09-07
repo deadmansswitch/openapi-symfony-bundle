@@ -8,6 +8,8 @@ use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Attribute\AsPro
 use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Guesser\EmailFormatGuesser;
 use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\GuesserStrategy;
 use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\GuesserStrategyInterface;
+use DeadMansSwitch\OpenApi\Symfony\Service\TypeMapper\TypeMapper;
+use DeadMansSwitch\OpenApi\Symfony\Service\TypeMapper\TypeMapperInterface;
 use ReflectionClass;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
@@ -27,6 +29,7 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
         $container->setParameter(self::ALIAS . ".config", $config);
 
         $this->registerPropertyTypeGuesserStrategy($container);
+        $this->registerTypeMapper($container);
     }
 
     private function registerPropertyTypeGuesserStrategy(ContainerBuilder $container): void
@@ -54,6 +57,12 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
             ->setAlias(alias: GuesserStrategyInterface::class, id: self::PREFIX . '.strategy')
             ->setPublic(true)
         ;
+    }
+
+    private function registerTypeMapper(ContainerBuilder $container): void
+    {
+        $container->register(id: self::PREFIX . '.type_mapper', class: TypeMapper::class);
+        $container->setAlias(alias: TypeMapperInterface::class, id: self::PREFIX . '.type_mapper')->setPublic(true);
     }
 
     public function getAlias(): string
