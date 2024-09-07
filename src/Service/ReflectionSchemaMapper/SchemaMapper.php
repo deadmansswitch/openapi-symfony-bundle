@@ -5,32 +5,21 @@ declare(strict_types=1);
 namespace DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper;
 
 use DeadMansSwitch\OpenAPI\Schema\V3_0\Schema;
-use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionClassSchemaMapper;
-use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionPropertyWithBuiltinTypeSchemaMapper;
 use LogicException;
 use Reflector;
+use Traversable;
 
-final class SchemaMapper
+final class SchemaMapper implements SchemaMapperInterface
 {
-    private readonly array $mappers;
+    public function __construct(private readonly Traversable $mappers) {}
 
-    public function __construct()
-    {
-        // TODO: Replace constructor with DI
-
-        $this->mappers = [
-            new ReflectionClassSchemaMapper($this),
-            new ReflectionPropertyWithBuiltinTypeSchemaMapper(),
-        ];
-    }
-
-    public function map(Reflector $ref): Schema
+    public function map(Reflector $reflector): Schema
     {
         foreach ($this->mappers as $mapper) {
-            assert($mapper instanceof SchemaMapperInterface);
+            assert($mapper instanceof SchemaMapperConcreteInterface);
 
-            if ($mapper->supports($ref)) {
-                return $mapper->map($ref);
+            if ($mapper->supports($reflector)) {
+                return $mapper->map($reflector);
             }
         }
 

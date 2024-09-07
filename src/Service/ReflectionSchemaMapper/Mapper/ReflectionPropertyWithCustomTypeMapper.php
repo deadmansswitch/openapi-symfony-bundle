@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper;
 
 use DeadMansSwitch\OpenAPI\Schema\V3_0\Schema;
+use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperConcreteInterface;
-use DeadMansSwitch\OpenApi\Symfony\Service\TypeMapper\TypeMapperInterface;
+use ReflectionClass;
+use ReflectionException;
 use ReflectionNamedType;
 use ReflectionProperty;
 use Reflector;
 
-final class ReflectionPropertyWithBuiltinTypeSchemaMapper implements SchemaMapperConcreteInterface
+final class ReflectionPropertyWithCustomTypeMapper implements SchemaMapperConcreteInterface
 {
-    public function __construct(private readonly TypeMapperInterface $typeMapper) {}
+    public function __construct(private readonly SchemaMapper $mapper) {}
 
     public function supports(Reflector $reflector): bool
     {
@@ -21,13 +23,16 @@ final class ReflectionPropertyWithBuiltinTypeSchemaMapper implements SchemaMappe
             return false;
         }
 
-        if (!$reflector->getType() instanceof ReflectionNamedType) {
+        if ($reflector->getType()->isBuiltin()) {
             return false;
         }
 
-        return $reflector->getType()->isBuiltin();
+        return true;
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function map(Reflector $reflector): Schema
     {
         assert($reflector instanceof ReflectionProperty);
@@ -35,6 +40,9 @@ final class ReflectionPropertyWithBuiltinTypeSchemaMapper implements SchemaMappe
         $type = $reflector->getType();
         assert($type instanceof ReflectionNamedType);
 
-        return new Schema(type: $this->typeMapper->getOpenApiType($type->getName()));
+        $name = $type->getName();
+        $ref = new ReflectionClass($name);
+
+        return $this->mapper->map($ref);
     }
 }

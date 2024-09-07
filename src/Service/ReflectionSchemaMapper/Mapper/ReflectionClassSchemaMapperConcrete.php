@@ -4,20 +4,29 @@ declare(strict_types=1);
 
 namespace DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper;
 
+use BackedEnum;
 use DeadMansSwitch\OpenAPI\Schema\V3_0\Extra\SchemasMap;
 use DeadMansSwitch\OpenAPI\Schema\V3_0\Schema;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapper;
-use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperInterface;
+use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperConcreteInterface;
 use ReflectionClass;
 use Reflector;
 
-final class ReflectionClassSchemaMapper implements SchemaMapperInterface
+final class ReflectionClassSchemaMapperConcrete implements SchemaMapperConcreteInterface
 {
     public function __construct(private readonly SchemaMapper $mapper) {}
 
     public function supports(Reflector $reflector): bool
     {
-        return $reflector instanceof ReflectionClass;
+        if (!$reflector instanceof ReflectionClass) {
+            return false;
+        }
+
+        if ($reflector->implementsInterface(BackedEnum::class)) {
+            return false;
+        }
+
+        return true;
     }
 
     public function map(Reflector $reflector): Schema
