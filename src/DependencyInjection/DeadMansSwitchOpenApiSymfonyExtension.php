@@ -32,6 +32,51 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
         $this->registerTypeMapper($container);
     }
 
+    private function registerReflectionSchemaMapper(ContainerBuilder $container): void
+    {
+        $container
+            ->registerForAutoconfiguration(SchemaMapperConcreteInterface::class)
+            ->addTag(name: SchemaMapperConcreteInterface::TAG)
+        ;
+
+        // TODO: try to remove `setTags` from concrete mappers and check does autoconfiguration works
+
+        $container
+            ->register(id: self::ALIAS . '.mapper.backed_enum', class: ReflectionBackedEnumSchemaMapper::class)
+            ->addTag(SchemaMapperConcreteInterface::TAG)
+        ;
+
+        // TODO: implement collection output dto schema mapper and register it here, after backed enum mapper
+
+        $container
+            ->register(id: self::ALIAS . '.mapper.class', class: ReflectionClassSchemaMapperConcrete::class)
+            ->setArgument('$mapper', new Reference(self::ALIAS . '.mapper.strategy'))
+            ->addTag(SchemaMapperConcreteInterface::TAG)
+        ;
+
+        $container
+            ->register(id: self::ALIAS . '.mapper.property_of_builtin_type', class: ReflectionPropertyWithBuiltinTypeSchemaMapper::class)
+            ->setArgument('$typeMapper', new Reference(TypeMapperInterface::class))
+            ->addTag(SchemaMapperConcreteInterface::TAG)
+        ;
+
+        $container
+            ->register(id: self::ALIAS . '.mapper.property_of_non_builtin_type', class: ReflectionPropertyWithCustomTypeMapper::class)
+            ->setArgument('$mapper', new Reference(self::ALIAS . '.mapper.strategy'))
+            ->addTag(SchemaMapperConcreteInterface::TAG)
+        ;
+
+        $container
+            ->register(id: self::ALIAS . '.mapper.strategy', class: SchemaMapper::class)
+            ->setArgument('$mappers', new TaggedIteratorArgument(tag: SchemaMapperConcreteInterface::TAG))
+        ;
+
+        $container
+            ->setAlias(alias: SchemaMapperInterface::class, id: self::ALIAS . '.mapper.strategy')
+            ->setPublic(true)
+        ;
+    }
+
     private function registerPropertyTypeGuesserStrategy(ContainerBuilder $container): void
     {
         $container
