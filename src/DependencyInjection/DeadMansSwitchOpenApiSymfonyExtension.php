@@ -12,6 +12,7 @@ use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\Reflect
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionClassSchemaMapperConcrete;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionPropertyWithBuiltinTypeSchemaMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionPropertyWithCustomTypeMapper;
+use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionTypedCollectionSchemaMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperConcreteInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperInterface;
@@ -78,7 +79,10 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
             ->addTag(SchemaMapperConcreteInterface::TAG)
         ;
 
-        // TODO: implement collection output dto schema mapper and register it here, after backed enum mapper
+        $container
+            ->register(id: self::ALIAS . '.mapper.typed_collection', class: ReflectionTypedCollectionSchemaMapper::class)
+            ->addTag(name: SchemaMapperConcreteInterface::TAG)
+        ;
 
         $container
             ->register(id: self::ALIAS . '.mapper.class', class: ReflectionClassSchemaMapperConcrete::class)
