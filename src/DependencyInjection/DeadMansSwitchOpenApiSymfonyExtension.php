@@ -15,6 +15,10 @@ use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\Reflect
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperConcreteInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperInterface;
+use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\Extractor\PathEntityIdentifierExtractor;
+use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\ExtractorInterface;
+use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\RequestParametersExtractor;
+use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\RequestParametersExtractorInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\TypeMapper\TypeMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\TypeMapper\TypeMapperInterface;
 use ReflectionClass;
@@ -36,9 +40,28 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
 
         $container->setParameter(self::ALIAS . ".config", $config);
 
+        $this->registerRequestParametersExtractor($container);
         $this->registerReflectionSchemaMapper($container);
         $this->registerPropertyTypeGuesserStrategy($container);
         $this->registerTypeMapper($container);
+    }
+
+    private function registerRequestParametersExtractor(ContainerBuilder $container): void
+    {
+        $container
+            ->register(id: self::PREFIX . '.request_parameters_extractor.query_entity_identifier', class: PathEntityIdentifierExtractor::class)
+            ->addTag(name: ExtractorInterface::TAG)
+        ;
+
+        $container
+            ->register(id: self::ALIAS . '.request_parameters_extractor', class: RequestParametersExtractor::class)
+            ->setArgument('$extractors', new TaggedIteratorArgument(tag: ExtractorInterface::TAG))
+        ;
+
+        $container
+            ->setAlias(alias: RequestParametersExtractorInterface::class, id: self::ALIAS . '.request_parameters_extractor')
+            ->setPublic(true)
+        ;
     }
 
     private function registerReflectionSchemaMapper(ContainerBuilder $container): void
