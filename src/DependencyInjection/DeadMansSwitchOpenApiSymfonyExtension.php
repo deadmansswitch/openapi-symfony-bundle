@@ -10,6 +10,7 @@ use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\GuesserStrategy
 use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\GuesserStrategyInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionBackedEnumSchemaMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionClassSchemaMapperConcrete;
+use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionParameterSchemaMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionPropertyWithBuiltinTypeSchemaMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionPropertyWithCustomTypeMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionTypedCollectionSchemaMapper;
@@ -17,6 +18,7 @@ use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperConcreteInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\Extractor\PathEntityIdentifierExtractor;
+use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\Extractor\QueryParameterExtractor;
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\ExtractorInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\RequestParametersExtractor;
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\RequestParametersExtractorInterface;
@@ -55,6 +57,12 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
         ;
 
         $container
+            ->register(id: self::PREFIX . '.request_parameters_extractor.query_parameter', class: QueryParameterExtractor::class)
+            ->setArgument('$mapper', new Reference(SchemaMapperInterface::class))
+            ->addTag(name: ExtractorInterface::TAG)
+        ;
+
+        $container
             ->register(id: self::ALIAS . '.request_parameters_extractor', class: RequestParametersExtractor::class)
             ->setArgument('$extractors', new TaggedIteratorArgument(tag: ExtractorInterface::TAG))
         ;
@@ -75,8 +83,14 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
         // TODO: try to remove `setTags` from concrete mappers and check does autoconfiguration works
 
         $container
+            ->register(id: self::ALIAS . '.mapper.parameter', class: ReflectionParameterSchemaMapper::class)
+            ->setArgument('$typeMapper', new Reference(TypeMapperInterface::class))
+            ->addTag(name: SchemaMapperConcreteInterface::TAG)
+        ;
+
+        $container
             ->register(id: self::ALIAS . '.mapper.backed_enum', class: ReflectionBackedEnumSchemaMapper::class)
-            ->addTag(SchemaMapperConcreteInterface::TAG)
+            ->addTag(name: SchemaMapperConcreteInterface::TAG)
         ;
 
         $container

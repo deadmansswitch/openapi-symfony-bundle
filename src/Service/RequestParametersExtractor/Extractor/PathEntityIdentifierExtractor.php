@@ -7,7 +7,6 @@ namespace DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\Extr
 use DeadMansSwitch\OpenAPI\Schema\V3_0\Extra\ParametersMap;
 use DeadMansSwitch\OpenAPI\Schema\V3_0\Parameter;
 use DeadMansSwitch\OpenAPI\Schema\V3_0\Schema;
-use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\ExtractorInterface;
 use ReflectionMethod;
 use ReflectionParameter;

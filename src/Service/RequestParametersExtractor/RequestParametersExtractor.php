@@ -13,7 +13,6 @@ final class RequestParametersExtractor implements RequestParametersExtractorInte
     // TODO:
     //  - PathBackedEnumExtractor
     //  - PathScalarValueExtractor
-    //  - QueryParamAttributeExtractor
     //  - QueryStringAttributeExtractor
     public function __construct(private readonly iterable $extractors) {}
 
@@ -28,7 +27,6 @@ final class RequestParametersExtractor implements RequestParametersExtractorInte
                 continue;
             }
 
-            // TODO: merge ParametersMap from extractor ($res) with parameters map in state of current method ($map)
             $res = $extractor->extract($route, $handler);
 
             foreach ($res as $parameter) {
