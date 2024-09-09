@@ -6,16 +6,16 @@ namespace DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\Extr
 
 use DeadMansSwitch\OpenAPI\Schema\V3_0\Extra\ParametersMap;
 use DeadMansSwitch\OpenAPI\Schema\V3_0\Parameter;
-use DeadMansSwitch\OpenAPI\Schema\V3_0\Schema;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\ExtractorInterface;
+use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
 use ReflectionParameter;
-use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
+use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\Routing\Route;
 
-final class QueryParameterExtractor implements ExtractorInterface
+final class QueryStringExtractor implements ExtractorInterface
 {
     public function __construct(private readonly SchemaMapperInterface $mapper) {}
 
@@ -31,27 +31,46 @@ final class QueryParameterExtractor implements ExtractorInterface
     {
         $result = [];
 
-        $parameters = $handler->getParameters();
+        foreach ($handler->getParameters() as $parameter) {
+            assert($parameter instanceof ReflectionParameter);
 
-        foreach ($parameters as $parameter) {
-            $attributes = $parameter->getAttributes();
-
-            foreach ($attributes as $attribute) {
-                if ($attribute->getName() !== MapQueryParameter::class) {
+            foreach ($parameter->getAttributes() as $attribute)  {
+                if ($attribute->getName() !== MapQueryString::class) {
                     continue;
                 }
 
-                $result[] = new Parameter(
-                    name: $parameter->getName(),
-                    in: 'query',
-                    required: $this->isRequired($parameter),
-                    schema: $this->getSchema($parameter),
-                    example: $this->getExample($parameter),
-                );
+                foreach ($this->extractFieldsFromQueryStringObject($parameter) as $field) {
+                    $result[] = $field;
+                }
             }
         }
 
         return ParametersMap::fromArray($result);
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    private function extractFieldsFromQueryStringObject(ReflectionParameter $parameter): array
+    {
+        $output = [];
+
+        $class  = new ReflectionClass($parameter->getType()->getName());
+        $method = $class->getMethod('__construct');
+
+        foreach ($method->getParameters() as $parameter) {
+            assert($parameter instanceof ReflectionParameter);
+
+            $output[] = new Parameter(
+                name: $parameter->getName(),
+                in: 'query',
+                required: $this->isRequired($parameter),
+                schema: $this->mapper->map($parameter),
+                example: $this->getExample($parameter),
+            );
+        }
+
+        return $output;
     }
 
     private function isRequired(ReflectionParameter $parameter): bool
@@ -64,10 +83,5 @@ final class QueryParameterExtractor implements ExtractorInterface
         return $parameter->isDefaultValueAvailable()
             ? (string) $parameter->getDefaultValue()
             : null;
-    }
-
-    private function getSchema(ReflectionParameter $parameter): Schema
-    {
-        return $this->mapper->map($parameter);
     }
 }

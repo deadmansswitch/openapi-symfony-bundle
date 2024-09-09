@@ -19,6 +19,7 @@ use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperCo
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\Extractor\PathEntityIdentifierExtractor;
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\Extractor\QueryParameterExtractor;
+use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\Extractor\QueryStringExtractor;
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\ExtractorInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\RequestParametersExtractor;
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\RequestParametersExtractorInterface;
@@ -58,6 +59,12 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
 
         $container
             ->register(id: self::PREFIX . '.request_parameters_extractor.query_parameter', class: QueryParameterExtractor::class)
+            ->setArgument('$mapper', new Reference(SchemaMapperInterface::class))
+            ->addTag(name: ExtractorInterface::TAG)
+        ;
+
+        $container
+            ->register(id: self::PREFIX  . '.request_parameters_extractor.query_string', class: QueryStringExtractor::class)
             ->setArgument('$mapper', new Reference(SchemaMapperInterface::class))
             ->addTag(name: ExtractorInterface::TAG)
         ;
