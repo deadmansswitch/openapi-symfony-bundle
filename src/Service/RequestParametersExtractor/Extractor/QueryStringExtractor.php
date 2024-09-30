@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\Extractor;
 
+use BackedEnum;
 use DeadMansSwitch\OpenAPI\Schema\V3_0\Extra\ParametersMap;
 use DeadMansSwitch\OpenAPI\Schema\V3_0\Parameter;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperInterface;
@@ -61,13 +62,49 @@ final class QueryStringExtractor implements ExtractorInterface
         foreach ($method->getParameters() as $parameter) {
             assert($parameter instanceof ReflectionParameter);
 
-            $output[] = new Parameter(
-                name: $parameter->getName(),
-                in: 'query',
-                required: $this->isRequired($parameter),
-                schema: $this->mapper->map($parameter),
-                example: $this->getExample($parameter),
-            );
+            // if parameter is scalar type -> let's add to parameters
+            $type = $parameter->getType();
+
+            if ($type->isBuiltin()) {
+                $output[] = new Parameter(
+                    name: $parameter->getName(),
+                    in: 'query',
+                    required: $this->isRequired($parameter),
+                    schema: $this->mapper->map($parameter),
+                    example: $this->getExample($parameter),
+                );
+
+                continue;
+            }
+
+            // if parameter is enum -> let's add to parameters
+            if (enum_exists($type->getName())) {
+                $output[] = new Parameter(
+                    name: $parameter->getName(),
+                    in: 'query',
+                    required: $this->isRequired($parameter),
+                    schema: $this->mapper->map($parameter),
+                    example: $this->getExample($parameter),
+                );
+
+                continue;
+            }
+
+            // if parameter is object -> let's iterate over properties and add each of them to parameters
+            if (class_exists($type->getName())) {
+                $dtoRef         = new ReflectionClass($type->getName());
+                $dtoConstructor = $dtoRef->getMethod('__construct');
+
+                foreach ($dtoConstructor->getParameters() as $dtoConstructorParameter) {
+                    $output[] = new Parameter(
+                        name: $dtoConstructorParameter->name,
+                        in: 'query',
+                        required: $this->isRequired($dtoConstructorParameter),
+                        schema: $this->mapper->map($dtoConstructorParameter),
+                        example: $this->getExample($dtoConstructorParameter),
+                    );
+                }
+            }
         }
 
         return $output;
@@ -80,8 +117,18 @@ final class QueryStringExtractor implements ExtractorInterface
 
     private function getExample(ReflectionParameter $parameter): null|string
     {
-        return $parameter->isDefaultValueAvailable()
-            ? (string) $parameter->getDefaultValue()
+        $default = $parameter->isDefaultValueAvailable()
+            ? $parameter->getDefaultValue()
             : null;
+
+        if (is_scalar($default)) {
+            return (string) $default;
+        }
+
+        if ($default instanceof BackedEnum) {
+            return $default->value;
+        }
+
+        return null;
     }
 }
