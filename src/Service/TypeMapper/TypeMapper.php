@@ -11,6 +11,14 @@ final class TypeMapper implements TypeMapperInterface
      */
     public function getOpenApiType(string $phpType): string
     {
+        if (enum_exists($phpType)) {
+            return 'string';
+        }
+
+        if (class_exists($phpType)) {
+            return 'object';
+        }
+
         return match ($phpType) {
             'int'       => 'integer',
             'float'     => 'number',
