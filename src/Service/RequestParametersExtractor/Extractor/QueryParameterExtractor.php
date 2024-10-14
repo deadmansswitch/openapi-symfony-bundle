@@ -42,7 +42,7 @@ final class QueryParameterExtractor implements ExtractorInterface
                 }
 
                 $result[] = new Parameter(
-                    name: $parameter->getName(),
+                    name: $this->getName($parameter),
                     in: 'query',
                     required: $this->isRequired($parameter),
                     schema: $this->getSchema($parameter),
@@ -57,6 +57,25 @@ final class QueryParameterExtractor implements ExtractorInterface
     private function isRequired(ReflectionParameter $parameter): bool
     {
         return $parameter->allowsNull() === false;
+    }
+
+    private function getName(ReflectionParameter $parameter): string
+    {
+        $result = $parameter->getName();
+
+        foreach ($parameter->getAttributes() as $attribute) {
+            if (!is_a($attribute->getName(), MapQueryParameter::class, true)) {
+                continue;
+            }
+
+            $args = $attribute->getArguments();
+
+            if (isset($args['name'])) {
+                $result = $args['name'];
+            }
+        }
+
+        return $result;
     }
 
     private function getExample(ReflectionParameter $parameter): null|string
