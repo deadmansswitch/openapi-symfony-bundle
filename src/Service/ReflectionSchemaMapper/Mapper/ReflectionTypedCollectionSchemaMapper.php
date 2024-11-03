@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper;
 
-use DeadMansSwitch\OpenAPI\Schema\V3_0\Reference;
-use DeadMansSwitch\OpenAPI\Schema\V3_0\Schema;
+use DeadMansSwitch\OpenApi\Schema\V3_0\Reference;
+use DeadMansSwitch\OpenApi\Schema\V3_0\Schema;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Exception\ClassNotExistsException;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperConcreteInterface;
 use DeadMansSwitch\OpenApi\Symfony\Util\Namer;

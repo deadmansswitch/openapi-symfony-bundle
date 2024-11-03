@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\Extractor;
 
 use BackedEnum;
-use DeadMansSwitch\OpenAPI\Schema\V3_0\Extra\ParametersMap;
-use DeadMansSwitch\OpenAPI\Schema\V3_0\Parameter;
+use DeadMansSwitch\OpenApi\Schema\V3_0\Extra\ParametersMap;
+use DeadMansSwitch\OpenApi\Schema\V3_0\Parameter;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\ExtractorInterface;
 use ReflectionClass;
