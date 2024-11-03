@@ -9,6 +9,7 @@ use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperCo
 use DeadMansSwitch\OpenApi\Symfony\Service\TypeMapper\TypeMapperInterface;
 use ReflectionParameter;
 use Reflector;
+use RuntimeException;
 
 final class ReflectionParameterSchemaMapper implements SchemaMapperConcreteInterface
 {
@@ -27,6 +28,24 @@ final class ReflectionParameterSchemaMapper implements SchemaMapperConcreteInter
 
         return new Schema(
             type: $this->typeMapper->getOpenApiType($type),
+            enum: $this->isBackedEnum($type) ? $this->getEnumValues($type) : null,
+        );
+    }
+
+    private function isBackedEnum(string $type): bool
+    {
+        return enum_exists($type);
+    }
+
+    private function getEnumValues(string $enum): array
+    {
+        if (!enum_exists($enum)) {
+            throw new RuntimeException();
+        }
+
+        return array_map(
+            callback: static fn ($case): string => $case->value,
+            array: $enum::cases(),
         );
     }
 }
