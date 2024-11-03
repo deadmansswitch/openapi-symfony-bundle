@@ -30,7 +30,7 @@ final class ReflectionBackedEnumSchemaMapper implements SchemaMapperConcreteInte
         assert($reflector instanceof ReflectionClass);
         assert($reflector->implementsInterface(BackedEnum::class));
 
-        $cases  = $reflector->getMethod('cases')->invoke(null);
+        $cases = $reflector->getMethod('cases')->invoke(null);
 
         $values = [];
         foreach ($cases as $case) {
@@ -41,7 +41,8 @@ final class ReflectionBackedEnumSchemaMapper implements SchemaMapperConcreteInte
         return new Schema(
             type: 'string',
             format: 'enum',
-            example: implode('|', $values),
+            example: $values[0] ?? null,
+            enum: !empty($values) ? $values : null,
         );
     }
 }
