@@ -23,6 +23,8 @@ use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\Extractor\
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\ExtractorInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\RequestParametersExtractor;
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\RequestParametersExtractorInterface;
+use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\ChainRouteProcessor;
+use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\RouteProcessorInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\TypeMapper\TypeMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\TypeMapper\TypeMapperInterface;
 use ReflectionClass;
@@ -48,6 +50,7 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
         $this->registerReflectionSchemaMapper($container);
         $this->registerPropertyTypeGuesserStrategy($container);
         $this->registerTypeMapper($container);
+        $this->registerRouteProcessor($container);
     }
 
     private function registerRequestParametersExtractor(ContainerBuilder $container): void
@@ -165,6 +168,15 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
     {
         $container->register(id: self::PREFIX . '.type_mapper', class: TypeMapper::class);
         $container->setAlias(alias: TypeMapperInterface::class, id: self::PREFIX . '.type_mapper')->setPublic(true);
+    }
+
+    private function registerRouteProcessor(ContainerBuilder $container): void
+    {
+        $container
+            ->register(id: self::PREFIX . '.chain_processor', class: ChainRouteProcessor::class)
+            ->setArgument('$mapper', new Reference(SchemaMapperInterface::class))
+        ;
+        $container->setAlias(alias: RouteProcessorInterface::class, id: self::PREFIX . '.chain_processor')->setPublic(true);
     }
 
     public function getAlias(): string
