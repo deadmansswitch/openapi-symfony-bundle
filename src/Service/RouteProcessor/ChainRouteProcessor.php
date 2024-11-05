@@ -8,6 +8,7 @@ use DeadMansSwitch\OpenApi\Schema\V3_0\OpenApi;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\Exception\UnprocessableRouteException;
 use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\Processors as Processors;
+use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\Util\RouteProcessorUtils;
 use Symfony\Component\Routing\Route;
 use Throwable;
 
@@ -15,20 +16,22 @@ final class ChainRouteProcessor implements RouteProcessorInterface
 {
     private readonly array $processors;
 
-    public function __construct(private readonly SchemaMapperInterface $mapper)
-    {
+    public function __construct(
+        private readonly SchemaMapperInterface $mapper,
+        private readonly RouteProcessorUtils $utils,
+    ) {
         $this->processors = [
             // Validate, that we can process this route
-            new Processors\RouteValidationProcessor(),
+            new Processors\RouteValidationProcessor(utils: $this->utils),
 
             // Create if not exists path item for openapi spec
             new Processors\SetupOpenApiPathItemProcessor(),
 
             // Create output schema for route
-            new Processors\OutputSchemaProcessor(mapper: $this->mapper),
+            new Processors\OutputSchemaProcessor(mapper: $this->mapper, utils: $this->utils),
 
             // Create responses map for route
-            new Processors\RouteResponseProcessor(),
+            new Processors\RouteResponseProcessor(utils: $this->utils),
 
             // Process input params (query params, request body)
             // TODO: ...

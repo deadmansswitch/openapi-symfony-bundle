@@ -15,6 +15,7 @@ use DeadMansSwitch\OpenApi\Schema\V3_0\Responses;
 use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\Exception\SchemaComponentMissedException;
 use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\Exception\UnprocessableRouteException;
 use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\RouteProcessorInterface;
+use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\Util\RouteProcessorUtils;
 use DeadMansSwitch\OpenApi\Symfony\Util\Namer;
 use ReflectionException;
 use ReflectionMethod;
@@ -22,6 +23,8 @@ use Symfony\Component\Routing\Route;
 
 final class RouteResponseProcessor implements RouteProcessorInterface
 {
+    public function __construct(private readonly RouteProcessorUtils $utils) {}
+
     /**
      * @throws ReflectionException
      * @throws UnprocessableRouteException
@@ -72,15 +75,7 @@ final class RouteResponseProcessor implements RouteProcessorInterface
      */
     private function getReturnTypeClassName(Route $route): string
     {
-        $handler = $route->getDefault('_controller');
-        if (empty($handler) || !is_string($handler)) {
-            throw new UnprocessableRouteException("{$route->getPath()} missed valid controller");
-        }
-
-        $segments   = explode('::', $handler);
-        $class      = $segments[0];
-        $method     = $segments[1] ?? '__invoke';
-        $reflection = new ReflectionMethod($class, $method);
+        $reflection = $this->utils->getRouteHandlerReflectionMethod($route);
         $return     = $reflection->getReturnType();
 
         return $return->getName();

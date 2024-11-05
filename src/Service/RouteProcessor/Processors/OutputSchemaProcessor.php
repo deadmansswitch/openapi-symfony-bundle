@@ -10,6 +10,7 @@ use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperIn
 use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\Exception\UnprocessableRouteException;
 use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\Exception\UnsupportedReturnTypeException;
 use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\RouteProcessorInterface;
+use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\Util\RouteProcessorUtils;
 use DeadMansSwitch\OpenApi\Symfony\Util\Namer;
 use ReflectionClass;
 use ReflectionException;
@@ -19,7 +20,10 @@ use Symfony\Component\Routing\Route;
 
 final class OutputSchemaProcessor implements RouteProcessorInterface
 {
-    public function __construct(private readonly SchemaMapperInterface $mapper) {}
+    public function __construct(
+        private readonly SchemaMapperInterface $mapper,
+        private readonly RouteProcessorUtils $utils,
+    ) {}
 
     /**
      * @throws UnprocessableRouteException
@@ -28,18 +32,10 @@ final class OutputSchemaProcessor implements RouteProcessorInterface
      */
     public function process(OpenApi &$openapi, Route $route): void
     {
-        $handler  = $route->getDefault('_controller');
-        if (empty($handler) || !is_string($handler)) {
-            throw new UnprocessableRouteException("{$route->getPath()} missed valid controller");
-        }
-
-        $segments = explode('::', $handler);
-        $class    = $segments[0];
-        $method   = $segments[1] ?? '__invoke';
-
+        $reflection = $this->utils->getRouteHandlerReflectionMethod($route);
 
         // Get return type for the handler
-        $outputType = $this->getReturnType($class, $method);
+        $outputType = $this->getReturnType($reflection);
 
         // Convert return type to OpenApi schema
         $schema = $this->buildSchema($outputType);
@@ -58,13 +54,12 @@ final class OutputSchemaProcessor implements RouteProcessorInterface
      * @throws ReflectionException
      * @throws UnprocessableRouteException
      */
-    private function getReturnType(string $class, string $method): ReflectionType
+    private function getReturnType(ReflectionMethod $reflectionMethod): ReflectionType
     {
-        $handlerReflection = new ReflectionMethod($class, $method);
-        $returnType = $handlerReflection->getReturnType();
+        $returnType = $reflectionMethod->getReturnType();
 
         if ($returnType === null) {
-            throw new UnprocessableRouteException("{$class}::{$method} missed return type");
+            throw new UnprocessableRouteException("Missed return type");
         }
 
         return $returnType;

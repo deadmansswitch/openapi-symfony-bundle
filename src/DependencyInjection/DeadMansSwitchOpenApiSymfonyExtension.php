@@ -25,6 +25,7 @@ use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\RequestPar
 use DeadMansSwitch\OpenApi\Symfony\Service\RequestParametersExtractor\RequestParametersExtractorInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\ChainRouteProcessor;
 use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\RouteProcessorInterface;
+use DeadMansSwitch\OpenApi\Symfony\Service\RouteProcessor\Util\RouteProcessorUtils;
 use DeadMansSwitch\OpenApi\Symfony\Service\TypeMapper\TypeMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\TypeMapper\TypeMapperInterface;
 use ReflectionClass;
@@ -173,8 +174,14 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
     private function registerRouteProcessor(ContainerBuilder $container): void
     {
         $container
+            ->register(id: RouteProcessorUtils::class, class: RouteProcessorUtils::class)
+            ->setPublic(true)
+        ;
+
+        $container
             ->register(id: self::PREFIX . '.chain_processor', class: ChainRouteProcessor::class)
             ->setArgument('$mapper', new Reference(SchemaMapperInterface::class))
+            ->setArgument('$utils', new Reference(RouteProcessorUtils::class))
         ;
         $container->setAlias(alias: RouteProcessorInterface::class, id: self::PREFIX . '.chain_processor')->setPublic(true);
     }
