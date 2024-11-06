@@ -182,6 +182,7 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
             ->register(id: self::PREFIX . '.chain_processor', class: ChainRouteProcessor::class)
             ->setArgument('$mapper', new Reference(SchemaMapperInterface::class))
             ->setArgument('$utils', new Reference(RouteProcessorUtils::class))
+            ->setArgument('$extractor', new Reference(RequestParametersExtractorInterface::class))
         ;
         $container->setAlias(alias: RouteProcessorInterface::class, id: self::PREFIX . '.chain_processor')->setPublic(true);
     }
