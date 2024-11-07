@@ -8,6 +8,7 @@ use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Attribute\AsPro
 use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\Guesser\EmailFormatGuesser;
 use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\GuesserStrategy;
 use DeadMansSwitch\OpenApi\Symfony\Service\PropertyFormatGuesser\GuesserStrategyInterface;
+use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\DateTimeSchemaMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionBackedEnumSchemaMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionClassSchemaMapperConcrete;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionParameterSchemaMapper;
@@ -102,6 +103,11 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
 
         $container
             ->register(id: self::ALIAS . '.mapper.backed_enum', class: ReflectionBackedEnumSchemaMapper::class)
+            ->addTag(name: SchemaMapperConcreteInterface::TAG)
+        ;
+
+        $container
+            ->register(id: self::ALIAS . '.mapper.datetime', class: DateTimeSchemaMapper::class)
             ->addTag(name: SchemaMapperConcreteInterface::TAG)
         ;
 
