@@ -14,6 +14,7 @@ use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\Reflect
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionPropertyWithBuiltinTypeSchemaMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionPropertyWithCustomTypeMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionTypedCollectionSchemaMapper;
+use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\Mapper\ReflectionUuidSchemaMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapper;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperConcreteInterface;
 use DeadMansSwitch\OpenApi\Symfony\Service\ReflectionSchemaMapper\SchemaMapperInterface;
@@ -101,6 +102,11 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
 
         $container
             ->register(id: self::ALIAS . '.mapper.backed_enum', class: ReflectionBackedEnumSchemaMapper::class)
+            ->addTag(name: SchemaMapperConcreteInterface::TAG)
+        ;
+
+        $container
+            ->register(id: self::ALIAS . '.mapper.uuid', class: ReflectionUuidSchemaMapper::class)
             ->addTag(name: SchemaMapperConcreteInterface::TAG)
         ;
 
