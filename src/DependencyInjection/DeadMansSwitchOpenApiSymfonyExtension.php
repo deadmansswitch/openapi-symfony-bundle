@@ -60,6 +60,9 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
     {
         $container
             ->register(id: self::PREFIX . '.request_parameters_extractor.query_entity_identifier', class: PathEntityIdentifierExtractor::class)
+            ->setArgument('$typeMapper', new Reference(TypeMapperInterface::class))
+            ->setArgument('$schemaMapper', new Reference(SchemaMapperInterface::class))
+            ->setArgument('$entityManager', new Reference('doctrine.orm.entity_manager'))
             ->addTag(name: ExtractorInterface::TAG)
         ;
 
