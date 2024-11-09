@@ -53,7 +53,7 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
         $this->registerReflectionSchemaMapper($container);
         $this->registerPropertyTypeGuesserStrategy($container);
         $this->registerTypeMapper($container);
-        $this->registerRouteProcessor($container);
+        $this->registerRouteProcessor($container, $config);
     }
 
     private function registerRequestParametersExtractor(ContainerBuilder $container): void
@@ -186,7 +186,7 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
         $container->setAlias(alias: TypeMapperInterface::class, id: self::PREFIX . '.type_mapper')->setPublic(true);
     }
 
-    private function registerRouteProcessor(ContainerBuilder $container): void
+    private function registerRouteProcessor(ContainerBuilder $container, array $config): void
     {
         $container
             ->register(id: RouteProcessorUtils::class, class: RouteProcessorUtils::class)
@@ -195,6 +195,7 @@ final class DeadMansSwitchOpenApiSymfonyExtension extends Extension
 
         $container
             ->register(id: self::PREFIX . '.chain_processor', class: ChainRouteProcessor::class)
+            ->setArgument('$config', $config)
             ->setArgument('$mapper', new Reference(SchemaMapperInterface::class))
             ->setArgument('$utils', new Reference(RouteProcessorUtils::class))
             ->setArgument('$extractor', new Reference(RequestParametersExtractorInterface::class))

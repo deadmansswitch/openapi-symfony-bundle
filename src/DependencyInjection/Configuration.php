@@ -21,7 +21,7 @@ final class Configuration implements ConfigurationInterface
                 ->arrayNode('info')
                     ->children()
                         ->scalarNode('title')
-                            ->defaultValue('DeadMan\sSwitch OpenApi')
+                            ->defaultValue('DeadMansSwitch OpenApi')
                         ->end()
                         ->scalarNode('version')
                             ->defaultValue('1.0.0')
@@ -33,6 +33,9 @@ final class Configuration implements ConfigurationInterface
                             ->defaultNull()
                         ->end()
                     ->end()
+                ->end()
+                ->arrayNode('directories')
+                    ->scalarPrototype()->end()
                 ->end()
             ->end()
         ;
