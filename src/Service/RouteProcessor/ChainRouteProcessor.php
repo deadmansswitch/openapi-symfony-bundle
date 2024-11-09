@@ -41,7 +41,7 @@ final class ChainRouteProcessor implements RouteProcessorInterface
             new Processors\QueryParamProcessor(utils: $this->utils, extractor: $this->extractor),
 
             // Process request body
-            // TODO: ...
+            new Processors\RequestBodyProcessor(utils: $this->utils, mapper: $this->mapper),
 
             // Process open api tags
             new Processors\TagProcessor(utils: $this->utils),
